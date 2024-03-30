@@ -1,0 +1,354 @@
+﻿Shader "FT Scene/Grass"
+{
+    Properties
+    {
+        
+        _GroundColorTex("Ground Color Tex", 2D) = "white" {}
+        _NoiseColorTex("Noise Color Tex", 2D) = "white" {}
+        //_WindNoiseTex("Wind Noise Tex", 2D) = "white" {}
+        
+
+        _UpColor("Up Color", Color) = (1,1,1,1)
+
+
+        [Header(Grass Shape)]
+        _GrassWidth("_GrassWidth", Float) = 1
+        _GrassHeight("_GrassHeight", Float) = 1
+
+
+        //[Header(Lighting)]
+        //_RandomNormal("_RandomNormal", Float) = 0.15
+
+        //make SRP batcher happy
+        [HideInInspector]_PivotPosWS("_PivotPosWS", Vector) = (0,0,0,0)
+        [HideInInspector]_BoundSize("_BoundSize", Vector) = (1,1,0)
+
+
+        [HideInInspector]_GroundRadiusWS ("Ground Radius", Float) = 50
+    }
+
+
+
+    SubShader
+    {
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline"}
+
+        Pass
+        {
+            Name "Grass" 
+
+            Cull Back //use default culling because this shader is billboard 
+            ZTest Less
+            ZWrite On // tpr 
+            Tags { "LightMode" = "UniversalForward" }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            // -------------------------------------
+            // Universal Render Pipeline keywords
+            // When doing custom shaders you most often want to copy and paste these #pragmas
+            // These multi_compile variants are stripped from the build depending on:
+            // 1) Settings in the URP Asset assigned in the GraphicsSettings at build time
+            //       e.g If you disabled AdditionalLights in the asset then all _ADDITIONA_LIGHTS variants will be stripped from build
+            // 2) Invalid combinations are stripped. e.g variants with _MAIN_LIGHT_SHADOWS_CASCADE but not _MAIN_LIGHT_SHADOWS are invalid and therefore stripped.
+
+            //#pragma multi_compile _ _MAIN_LIGHT_SHADOWS
+            //#pragma multi_compile _ _MAIN_LIGHT_SHADOWS_CASCADE
+
+            //#pragma multi_compile _ _ADDITIONAL_LIGHTS_VERTEX _ADDITIONAL_LIGHTS
+            //#pragma multi_compile _ _ADDITIONAL_LIGHT_SHADOWS
+
+            //#pragma multi_compile _ _SHADOWS_SOFT
+
+            // -------------------------------------
+            // Unity defined keywords
+            //#pragma multi_compile_fog
+            // -------------------------------------
+
+            // 必须支持 SV_InstanceID input system value
+            #pragma require instancing
+
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
+
+            //#include "gradientNoise3D.hlsl"
+            #include "wind.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS   : POSITION;
+            };
+
+            struct Varyings
+            {
+                float4 positionCS  : SV_POSITION;
+                half3 color        : COLOR;
+            };
+
+            CBUFFER_START(UnityPerMaterial)
+
+                float3 _PivotPosWS; // 草地 gameobj 的 posWS
+                float2 _BoundSize;  // 草地 gameobj 的 localScale {x,z}
+
+                float _GrassWidth;  // 草 三角形 宽度缩放
+                float _GrassHeight; // 草 三角形 高度缩放
+               
+                float4 _GroundColorTex_ST;
+                float4 _NoiseColorTex_ST;
+                //float4 _WindNoiseTex_ST;
+
+                float3 _UpColor;
+
+                //half _RandomNormal;
+
+                float _GroundRadiusWS; // 草地半径; 和 posws 同坐标比例;
+
+                // 所有草的 posWS, 按照 cell 的次序排序
+                StructuredBuffer<float3> _AllInstancesTransformBuffer; // 有 11mb 大;
+
+                // 本帧可见的 每个草叶子 的 idx 值; (在 _AllInstancesTransformBuffer 内的 idx 值)
+                StructuredBuffer<uint> _VisibleInstanceOnlyTransformIDBuffer;
+
+            CBUFFER_END
+
+
+
+            // 绘制 物体在草地上的运动轨迹, 从而支持草地起伏效果;
+            //sampler2D _GrassBendingRT;
+            sampler2D _GroundColorTex;
+            sampler2D _NoiseColorTex;
+            //sampler2D _WindNoiseTex;
+
+
+
+            //  1 out, 2 in...
+            // ret: [0,1]
+            float hash12(float2 p)
+            {
+                float3 p3  = frac(float3(p.xyx) * .1031);
+                p3 += dot(p3, p3.yzx + 33.33);
+                return frac((p3.x + p3.y) * p3.z); // [0,1]
+            }
+
+
+            // 一个草叶子(三角形) 的一个顶点:
+            // 猜测: 一个曹叶子的 4 个顶点, 每个顶点调用本函数时, 它们的 instanceID 应该是相同值;
+            Varyings vert(Attributes IN, uint instanceID : SV_InstanceID)
+            {
+                Varyings OUT = (Varyings)0;
+
+                // we pre-transform to posWS in C# now -- 本草的 主 posWS;
+                float3 perGrassPivotPosWS = _AllInstancesTransformBuffer[_VisibleInstanceOnlyTransformIDBuffer[instanceID]];
+
+            
+                float perGrassHeight = 3.5 * _GrassHeight; // 草的高度, 简化版...
+
+                // 草 是否被 "踩踏"
+                // get "is grass stepped" data(bending) from RT
+                // float2 grassBendingUV = ((perGrassPivotPosWS.xz - _PivotPosWS.xz) / _BoundSize) * 0.5 + 0.5;//claculate where is this grass inside bound (can optimize to 2 MAD)
+                // float stepped = tex2Dlod( _GrassBendingRT, float4(grassBendingUV, 0, 0) ).x; // [0,1], 接近0 表示被踩了;
+
+
+                //rotation(make grass LookAt() camera just like a billboard)
+                //=========================================
+                float3 cameraTransformRightWS = UNITY_MATRIX_V[0].xyz;      //UNITY_MATRIX_V[0].xyz == world space camera Right unit vector
+                float3 cameraTransformUpWS = UNITY_MATRIX_V[1].xyz;         //UNITY_MATRIX_V[1].xyz == world space camera Up unit vector
+                float3 cameraTransformForwardWS = -UNITY_MATRIX_V[2].xyz;   //UNITY_MATRIX_V[2].xyz == world space camera Forward unit vector * -1
+
+                cameraTransformUpWS = lerp( cameraTransformUpWS, float3(0,1,0), 0.6 ); // 尽可能朝向天空;
+
+
+                // 制作 posOS:
+                // 让 三角形 正对着 camera, 所以直接使用 posOS.x * cameraTransformRightWS, y方向也是;
+
+                //Expand Billboard (billboard Left+right)
+                float3 positionOS = IN.positionOS.x * cameraTransformRightWS * _GrassWidth * 
+                                    (sin(perGrassPivotPosWS.x*95.4643 + perGrassPivotPosWS.z) * 0.45 + 0.55); //random width from posXZ, min 0.1
+                
+
+                //Expand Billboard (billboard Up)
+                positionOS += IN.positionOS.y * cameraTransformUpWS;         
+                //=========================================
+
+                // //bending by RT (hard code)
+                // float3 bendDir = cameraTransformForwardWS;
+                // bendDir.xz *= 0.5; //make grass shorter when bending, looks better
+                // bendDir.y = min(-0.5,bendDir.y);//prevent grass become too long if camera forward is / near parallel to ground
+
+                // positionOS = lerp(
+                //     positionOS.xyz + bendDir * positionOS.y / -bendDir.y,   // 被踩了
+                //     positionOS.xyz,                                         // 没被踩
+                //     stepped * 0.95 + 0.05
+                // );//don't fully bend, will produce ZFighting
+                
+
+                //per grass height scale
+                positionOS.y *= perGrassHeight;
+
+
+                // camera distance scale (make grass width larger if grass is far away to camera, to hide smaller than pixel size triangle flicker)   
+                // 让那些远离 camera 的三角形变得更胖, 以此来遮挡远处的 小于一个像素的三角形 带来的 闪烁问题;
+                float3 viewWS = _WorldSpaceCameraPos - perGrassPivotPosWS;// 草->camera
+                float ViewWSLength = length(viewWS); // 草 到 相机距离
+                positionOS += cameraTransformRightWS * IN.positionOS.x * max(0, ViewWSLength * 0.015); // 0.0225
+
+
+                //move grass posOS -> posWS
+                float3 positionWS = positionOS + perGrassPivotPosWS;
+
+
+
+                // 到现在为止, 不管是 posOS 还是 posWS, 都是正面朝向 camera 的;
+
+
+                // =========== 风 =============
+
+
+                //wind animation (biilboard Left Right direction only sin wave)  
+
+                // _Time 的区间一定要被约束
+
+                // float wind = 0;
+                // wind += (sin(_Time.y * _WindAFrequency + perGrassPivotPosWS.x * _WindATiling.x + perGrassPivotPosWS.z * _WindATiling.y)*_WindAWrap.x+_WindAWrap.y) * _WindAIntensity; //windA
+                // wind += (sin(_Time.y * _WindBFrequency + perGrassPivotPosWS.x * _WindBTiling.x + perGrassPivotPosWS.z * _WindBTiling.y)*_WindBWrap.x+_WindBWrap.y) * _WindBIntensity; //windB
+                // wind += (sin(_Time.y * _WindCFrequency + perGrassPivotPosWS.x * _WindCTiling.x + perGrassPivotPosWS.z * _WindCTiling.y)*_WindCWrap.x+_WindCWrap.y) * _WindCIntensity; //windC
+                
+                // wind += (
+
+                //     sin(_Time.y * _WindAFrequency + perGrassPivotPosWS.x * _WindATiling.x + perGrassPivotPosWS.z * _WindATiling.y) * _WindAWrap.x + _WindAWrap.y
+                
+                // ) * _WindAIntensity;
+
+
+                //float perlinNoise = gradientNoise3D( float3( perGrassPivotPosWS.x, perGrassPivotPosWS.y, _Time.y) );
+                //float wind = remap( -1, 1, 0, 0.3, perlinNoise );
+
+
+                //float grassNoise = hash_0(perGrassPivotPosWS.xyz).r;
+                float grassNoise = hash12(perGrassPivotPosWS.xz); // [0,1]
+                grassNoise = grassNoise * 2 - 1; // [-1,1]
+
+                 
+                float2 pp = (perGrassPivotPosWS.xz/_GroundRadiusWS) * 0.5 + 0.5;
+
+                float wind = calc_wind( pp, grassNoise ); // [-1,1]
+
+                wind = remap( -1, 1, -0.08, 0.25, wind ); // 微风, 微微向画面右侧摆动, 允许向左回弹;
+                //wind *= 0.2;
+
+
+                float windWeight = grassNoise;
+                //windWeight = remap( -1, 1, 0.1, 1, windWeight );
+                windWeight = saturate( pow(abs(windWeight), 2) );
+                windWeight = remap( 0, 1, 0.1, 1, windWeight );
+
+
+                float windWeight2 = global_wind_weight();
+
+
+                wind = wind * windWeight * windWeight2;
+                //wind = wind * windWeight;
+
+                //float wind2 = calc_wind_2( pp );
+                //wind = max( wind, wind2 );
+
+                    // ------- wind3 ----------:
+                    // 采样一张 perlinnoise, 使用它来计算 风动, 效果更随机,
+                    // float2 windOff = float2( _Time.y * 0.2, _Time.y * 0.1 );
+                    // float2 windUV = perGrassPivotPosWS.xz * 0.08 + windOff;
+                    
+                    // //float3 windNoise = tex2Dlod(_WindNoiseTex, float4(TRANSFORM_TEX(perGrassPivotPosWS.xz,_WindNoiseTex),0,0)).rgb;//sample mip 0 only
+                    // float windNoise = tex2Dlod(_WindNoiseTex, float4(windUV.xy,0,0)).r;//sample mip 0 only
+
+                    // //wind = sin( windNoise );
+                    // //wind = remap( -1, 1, -0.2, 0.2, wind );
+
+
+
+
+                
+                //这里使用了个方法, 以让风只影响 三角形的 上顶点;
+                wind *= IN.positionOS.y; //wind only affect top region, don't affect root region
+                float3 windOffset = cameraTransformRightWS * wind; //swing using billboard left right direction
+                positionWS.xyz += windOffset;
+
+
+                // -------- 提前采样两个颜色 --------:
+                float3 baseColor = tex2Dlod(_GroundColorTex, float4(TRANSFORM_TEX(positionWS.xz,_GroundColorTex),0,0)).rgb;//sample mip 0 only
+                float3 noiseColor = tex2Dlod(_NoiseColorTex, float4(TRANSFORM_TEX(positionWS.xz,_NoiseColorTex),0,0)).rgb;//sample mip 0 only
+
+                float noiseColorGray = saturate( dot(noiseColor.rgb, float3(0.299, 0.587, 0.114)) ); // 明度值;
+
+                float heightWeight = lerp( 0.8, 1.5, noiseColorGray ); // 越亮的草越高
+                heightWeight *= lerp( 1, 1.5, noiseColor.r ); // 越红的草更高
+                positionWS.y *= heightWeight;
+
+
+                OUT.positionCS = TransformWorldToHClip(positionWS);
+
+
+                // 将草地约束为一个 圆形;
+                float groundRaiusWS = max( abs(_GroundRadiusWS), 0.1 );
+                float distancePct = saturate( length(positionWS.xz) / groundRaiusWS );
+                float distancePct2 = distancePct * distancePct;
+                float distancePct3 = lerp( distancePct2, distancePct, distancePct ); // 边缘比 2版 更暗;
+
+                
+
+                // ============================ color ===========================
+
+                //random normal per grass 
+                //half3 randomAddToN = (_RandomNormal * sin(perGrassPivotPosWS.x * 82.32523 + perGrassPivotPosWS.z) + wind * -0.25) * cameraTransformRightWS;
+                
+                //default grass's normal is pointing 100% upward in world space, it is an important but simple grass normal trick
+                // - apply random to normal else lighting is too uniform
+                // - apply cameraTransformForwardWS to normal because grass is billboard
+                // half3 N = normalize(half3(0,1,0) + randomAddToN - cameraTransformForwardWS*0.5);
+                // half3 V = viewWS / ViewWSLength; // 归一化
+
+
+                
+                float3 upColor = lerp( _UpColor, noiseColor, 0.8 );
+
+                upColor = lerp( baseColor, upColor, 0.5 * (1-distancePct3) );
+
+
+              
+
+                float3 lightingResult = float3( 0.2, 0.5, 0 );
+
+                // 简单补充: 草从下往上渐变色;
+                lightingResult = lerp( baseColor, upColor, IN.positionOS.y * IN.positionOS.y );
+
+                
+                OUT.color = lightingResult;
+
+
+                // ------- debug --------- // 
+                //OUT.color = float3( windWeight, windWeight, windWeight );
+                //OUT.color = float3( windNoise, 0, 0 );
+
+
+                return OUT;
+            }
+
+
+
+
+            half4 frag(Varyings IN) : SV_Target
+            {
+                return half4(IN.color,1);
+            }
+
+
+
+            ENDHLSL
+        }
+
+        //copy pass, change LightMode to ShadowCaster will make grass cast shadow
+        //copy pass, change LightMode to DepthOnly will make grass render into _CameraDepthTexture
+    }
+}

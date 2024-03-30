@@ -1,0 +1,82 @@
+﻿#pragma kernel CSMain
+
+
+// 有点担心 p矩阵的 y轴是上下颠倒的, 参见笔记 "positionHCS";
+float4x4 _VPMatrix;
+
+
+float _MaxDrawDistance;
+
+float _GroundRadiusWS; // 草地半径; //超出此半径的草全被剔除;
+
+
+// 本次 Dispatch() 处理的所有草叶子中, 起始草的 idx 值 (在 allInstancesPosWSBuffer 内的 idx 值)
+uint  _StartOffset;
+
+
+// 存储 所有草的 posws, 按所属的 cell 的次序排序;  will not change until instance count change
+StructuredBuffer<float3> 		_AllInstancesPosWSBuffer; 	// 若有 3万个草, 则有 351kb 大	
+
+
+// 每帧开始时, 此 buffer 都会被清空为 0 个元素, 然后在 本 kernerl 内被逐个填入元素:
+//  填入 本帧可见的 草叶子 的 idx 值; (在 _AllInstancesPosWSBuffer 内的 idx 值)
+AppendStructuredBuffer<uint> 	_VisibleInstancesOnlyPosWSIDBuffer; 
+
+
+
+// p: 目标点 pos
+// a,b: 线段的两顶点 pos
+float sdSegment( float2 p, float2 a, float2 b )
+{
+	float2 pa = p-a;
+	float2 ba = b-a;
+	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+	return length( pa - ba*h );
+}
+
+
+// 将球场 白边区域内的草 都剔除; 否则会让 草的三角形本质充分暴露, 不好看
+// bool CullGroundWhiteLines( float3 posWS ) 
+// {
+// 	float sdf0 = sdSegment( posWS.xz, float2(-5.49, 4.9), float2(5.36, -6.39) );   // 远端 横边
+// 	float sdf1 = sdSegment( posWS.xz, float2(-5.49, 4.9), float2(13.9, 23.65) );   // 右侧 垂直画面的 长边
+// 	float sdf2 = sdSegment( posWS.xz, float2(5.36, -6.39), float2(26.04, 13.49) );  // 左侧 垂直画面的 长边
+// 	float sdf3 = sdSegment( posWS.xz, float2(2.53, -3.41), float2(5.66, -0.41) );  // 左侧粗短边
+// 	float sdf4 = sdSegment( posWS.xz, float2(5.66, -0.41), float2(8.55, -3.34) );  // 左侧粗短边
+	
+// 	bool rb = (sdf0<0.15) || (sdf1<0.15) || (sdf2<0.15) || (sdf3<0.35) || (sdf4<0.35); // 白边区域内
+// 	return !rb; // 白边区域外
+// }
+
+
+
+// SV_DispatchThreadID: 当前 thread 在整个 grounp 中的 id; 
+// 尽管此处是个 一维数组, 但并不意味着它处理的数据 cells 本身在空间上是 一维排布的; 仅因为 我们准备的 数据数组本身是一维的...
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+	float3 posWS = _AllInstancesPosWSBuffer[id.x + _StartOffset];
+
+	//posWS -> posCS
+	float4 absPosCS = abs( mul( _VPMatrix, float4( posWS.xyz, 1.0 ) ) );
+
+	float groundRadius = max( abs(_GroundRadiusWS), 0.1 );
+	float distanceWS = length(posWS.xz);
+
+	/* 
+		在 clip-space 执行 culling test, 这个结果和在 NDC 空间做是一样的; 但是在这里做的速度更快, 因为可以节省 1 步除法;
+		test 使用 opengl 标准的 projection matrix, 因为 如果 instance 位于 camera frustum 内部, 且在 draw distance 距离内, 那么从 unity c# 来的所有矩阵 都是 opengl 风格的;
+		我们将其附加到 _VisibleInstancesOnlyPosWSIDBuffer;
+	*/
+    if (   absPosCS.z <= absPosCS.w
+		&& absPosCS.y <= absPosCS.w*1.5
+		&& absPosCS.x <= absPosCS.w*1.1
+		&& absPosCS.w <= _MaxDrawDistance
+		&& distanceWS < groundRadius // 圆形之外的草 统统剔除 !!! 
+		//&& CullGroundWhiteLines(posWS) // 球场白边内的草 剔除
+	){
+		// 这是个 append buffer, 可在尾后添加元素
+		_VisibleInstancesOnlyPosWSIDBuffer.Append(id.x + _StartOffset);
+	}
+}
+
