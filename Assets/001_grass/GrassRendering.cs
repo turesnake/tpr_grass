@@ -442,7 +442,6 @@ public class GrassRendering : MonoBehaviour
         argsBuffer = null;
 
         isBuffersPrepared = false;
-
     }
 
 
@@ -499,12 +498,20 @@ public class GrassRendering : MonoBehaviour
 
             //single grass (vertices)
             Vector3[] verts = new Vector3[6];
-            verts[0] = new Vector3( 0f,     0 );
-            verts[1] = new Vector3( -halfW, triangleH );
-            verts[2] = new Vector3( +halfW, triangleH );
-            verts[3] = new Vector3( -halfW, 1f - triangleH );
-            verts[4] = new Vector3( +halfW, 1f - triangleH );
-            verts[5] = new Vector3( 0f,     1f );
+            verts[0] = new Vector3( 0f,     0f, 0f );
+            verts[1] = new Vector3( -halfW, triangleH, 0f );
+            verts[2] = new Vector3( +halfW, triangleH, 0f );
+            verts[3] = new Vector3( -halfW, 1f - triangleH, 0f );
+            verts[4] = new Vector3( +halfW, 1f - triangleH, 0f );
+            verts[5] = new Vector3( 0f,     1f, 0f );
+
+            Vector2[] uvs = new Vector2[6];
+            uvs[0] = new Vector2( 0.5f, 0f );
+            uvs[1] = new Vector2( 0f,   triangleH );
+            uvs[2] = new Vector2( 1f,   triangleH );
+            uvs[3] = new Vector2( 0f,   1f - triangleH );
+            uvs[4] = new Vector2( 1f,   1f - triangleH );
+            uvs[5] = new Vector2( 0.5f, 1f );
 
             //single grass (Triangle index)
             int[] trinagles = new int[12] { 
@@ -515,6 +522,7 @@ public class GrassRendering : MonoBehaviour
             }; //order to fit Cull Back in grass shader, 顺时针排列的3个顶点
             cachedGrassMesh.SetVertices(verts);
             cachedGrassMesh.SetTriangles(trinagles, 0);
+            cachedGrassMesh.uv = uvs;
         }
         return cachedGrassMesh;
     }

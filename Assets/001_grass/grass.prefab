@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2904582811050777931
+--- !u!1 &5878510592447584655
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,9 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2904582811050777928}
-  - component: {fileID: 2904582811050777911}
-  - component: {fileID: 2904582811050777909}
+  - component: {fileID: 5878510592447584652}
+  - component: {fileID: 5878510592447584755}
+  - component: {fileID: 8780766456528012894}
   m_Layer: 0
   m_Name: grass
   m_TagString: Untagged
@@ -18,43 +18,43 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2904582811050777928
+--- !u!4 &5878510592447584652
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2904582811050777931}
+  m_GameObject: {fileID: 5878510592447584655}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: -0.029900072, z: 0}
-  m_LocalScale: {x: 50, y: 0.01, z: 50}
+  m_LocalScale: {x: 30, y: 0.01, z: 30}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &2904582811050777911
+--- !u!33 &5878510592447584755
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2904582811050777931}
+  m_GameObject: {fileID: 5878510592447584655}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2904582811050777909
+--- !u!114 &8780766456528012894
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2904582811050777931}
+  m_GameObject: {fileID: 5878510592447584655}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc27d3b47e836e8489ad58812540b3dc, type: 3}
+  m_Script: {fileID: 11500000, guid: 0e7db30fe7a831a45a2fa51217c55157, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  instanceCount: 30000
-  drawDistance: 150
-  material: {fileID: 2100000, guid: 172978ebc1b72e04f96a6adcb82fe6a7, type: 2}
-  cullingComputeShader: {fileID: 7200000, guid: c80e5a0a54d407147ac3a90aee4e49f7,
+  instanceCount: 50000
+  drawDistance: 125
+  material: {fileID: 2100000, guid: 7f292854cdac7ab4183139247876c647, type: 2}
+  cullingComputeShader: {fileID: 7200000, guid: 18625001b0a90a8428e63978443be598,
     type: 3}

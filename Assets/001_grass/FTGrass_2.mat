@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FTGrass_1
-  m_Shader: {fileID: 4800000, guid: 654cafa6dab9987498cb4dd7077bddb4, type: 3}
+  m_Name: FTGrass_2
+  m_Shader: {fileID: 4800000, guid: 405d48a0ac5d8a24bad186ff40603530, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -44,6 +44,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 2f2f208a969b20e49a95763195b52011, type: 3}
         m_Scale: {x: 0.0055, y: 0.0055}
         m_Offset: {x: 0.5, y: 0.5}
+    - _GroundHeightTex:
+        m_Texture: {fileID: 2800000, guid: ecd31214799f54741a998f41ef3eed82, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -63,6 +67,10 @@ Material:
     - _SpecGlossMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WheatTex:
+        m_Texture: {fileID: 2800000, guid: 7039c94bc401ed34c865bf8342d474e4, type: 3}
+        m_Scale: {x: 0.6, y: 1}
         m_Offset: {x: 0, y: 0}
     - _WindNoiseTex:
         m_Texture: {fileID: 2800000, guid: 10135f50737e0794f8188c7be8a347be, type: 3}
@@ -85,8 +93,10 @@ Material:
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _GrassHeight: 0.35
-    - _GrassWidth: 0.1
+    - _GrassWidth: 0.2
+    - _GroundGridSize: 11
     - _GroundRadiusWS: 15
+    - _GroundSize: 13
     - _IsUseWind: -0.56
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -109,14 +119,20 @@ Material:
     - _WindIntensity: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
+    - _wheatWaveDegree: 18
+    - _wheatWaveGridSize: 15
+    - _wheatWaveSpeed: 1.5
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BottomColor: {r: 0.10901045, g: 0.16037738, b: 0.02193842, a: 1}
     - _BoundSize: {r: 50, g: 50, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _DownColor: {r: 0, g: 1, b: 0.99999976, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GroundColor: {r: 0.10590956, g: 0.26415092, b: 0.1820699, a: 1}
-    - _PivotPosWS: {r: 0, g: -0.029900072, b: 0, a: 0}
+    - _HighLightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _HightLightColor: {r: 0.58127075, g: 0.6603774, b: 0.17755428, a: 1}
+    - _PivotPosWS: {r: 0, g: -0.01, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _UpColor: {r: 0.33807796, g: 0.4433962, b: 0.22797258, a: 1}
     - _WindADirection: {r: 0.1, g: 0.1, b: 0, a: 1}

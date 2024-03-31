@@ -6,6 +6,8 @@
         _GroundColorTex("Ground Color Tex", 2D) = "white" {}
         _NoiseColorTex("Noise Color Tex", 2D) = "white" {}
 
+        _GroundHeightTex("Ground Height Tex", 2D) = "white" {}
+
         _UpColor("Up Color", Color) = (1,1,1,1)
 
         [Header(Grass Shape)]
@@ -65,12 +67,16 @@
             struct Attributes
             {
                 float4 positionOS   : POSITION;
+                float2 uv           : TEXCOORD0;
             };
 
             struct Varyings
             {
                 float4 positionCS  : SV_POSITION;
+                
                 half3 color        : COLOR;
+                float2 uv           : TEXCOORD1;
+                float3 rootPosWS   : TEXCOORD2;
             };
 
             CBUFFER_START(UnityPerMaterial)
@@ -82,6 +88,7 @@
                 float _GrassHeight; // 草 高度缩放
                
                 float4 _GroundColorTex_ST;
+                float4 _GroundHeightTex_ST;
                 float4 _NoiseColorTex_ST;
 
                 float3 _UpColor;
@@ -102,17 +109,18 @@
 
             // 绘制 物体在草地上的运动轨迹, 从而支持草地起伏效果
             sampler2D _GroundColorTex;
+            sampler2D _GroundHeightTex;
             sampler2D _NoiseColorTex;
 
 
             
             // ret: [0,1]
-            float hash12(float2 p)
-            {
-                float3 p3  = frac(float3(p.xyx) * .1031);
-                p3 += dot(p3, p3.yzx + 33.33);
-                return frac((p3.x + p3.y) * p3.z); // [0,1]
-            }
+            // float hash12(float2 p)
+            // {
+            //     float3 p3  = frac(float3(p.xyx) * .1031);
+            //     p3 += dot(p3, p3.yzx + 33.33);
+            //     return frac((p3.x + p3.y) * p3.z); // [0,1]
+            // }
 
 
             // random01_: 区间[0.0,1.0]
@@ -198,7 +206,7 @@
                 localPosWS += IN.positionOS.x * cameraRightWS * max(0, ViewWSLength * 0.015); // (-这部分具体怎么计算无所谓-)
 
 
-                localPosWS = Rotate( localPosWS, grassNoise );
+                //localPosWS = Rotate( localPosWS, grassNoise );
 
 
                 // ------- 计算 本顶点的真正的 posWS: --------
@@ -264,12 +272,29 @@
 
                 OUT.positionCS = TransformWorldToHClip(posWS);
                 OUT.color = lightingResult;
+                OUT.rootPosWS = grassRootPosWS;
+
+                OUT.uv = IN.uv;
+
                 return OUT;
             }
 
 
             half4 frag(Varyings IN) : SV_Target
             {
+                // float2 uv = IN.uv; // 手写在叶子顶点内的 uv值;
+
+                // float groundSize = 2.0;
+                // float2 groundUV = frac( IN.rootPosWS.xz / groundSize );
+
+
+                // float height = tex2Dlod(_GroundHeightTex, float4(TRANSFORM_TEX(groundUV,_GroundHeightTex),0,0)).r;//sample mip 0 only
+
+
+                // return half4( height, height, height, 1); 
+
+                // //return half4( groundUV.x, groundUV.y, 0,1);
+
                 return half4(IN.color,1);
             }
 
