@@ -1,4 +1,7 @@
-﻿Shader "FT Scene/Grass2"
+﻿/* 
+    easy color:
+*/
+Shader "FT Scene/Grass3"
 {
     Properties
     {
@@ -11,15 +14,15 @@
         _DirNormalTex("dir normal Tex", 2D) = "white" {}
 
 
+        _DownColor("Down Color", Color) = (1,1,1,1)
         _UpColor("Up Color", Color) = (1,1,1,1)
+        
 
         _HighLightColor("hight light Color", Color) = (1,1,1,1)
 
-        _BottomColor("Bottom Color", Color) = (1,1,1,1)
-
 
        
-        _Gloss("Gloss", Range(1.0, 64.0)) = 20.0 // 控制 高光区域大小
+
 
 
         [Header(Grass Shape)]
@@ -49,7 +52,7 @@
 
         Pass
         {
-            Name "Grass2" 
+            Name "Grass3" 
 
             Cull Back
             ZTest Less
@@ -122,7 +125,7 @@
                 float3 _UpColor;
                 float3 _HighLightColor;
 
-                float3 _BottomColor;
+                float3 _DownColor;
 
                 float _GroundGridSize;
 
@@ -130,7 +133,7 @@
                 float _wheatWaveDegree;
                 float _wheatWaveSpeed;
 
-                float _Gloss;
+           
 
 
                 float _GroundRadiusWS; // 草地半径; 和 posws 同坐标比例; 超出此半径的草全被剔除;
@@ -327,13 +330,13 @@
 
                 // ============================ color ===========================        
                 float3 upColor = lerp( _UpColor, noiseColor, 0.8 );
-                //upColor = lerp( _BottomColor, upColor, 0.5 * (1-distancePct2) );
-                upColor = lerp( _BottomColor, upColor, 0.5 );
+                //upColor = lerp( _DownColor, upColor, 0.5 * (1-distancePct2) );
+                upColor = lerp( _DownColor, upColor, 0.5 );
               
                 
 
                 // 简单补充: 草从下往上渐变色;
-                float3 lightingResult = lerp( _BottomColor, upColor, IN.positionOS.y * IN.positionOS.y );
+                float3 lightingResult = lerp( _DownColor, upColor, IN.positionOS.y * IN.positionOS.y );
 
                 // ========
                 OUT.positionCS = TransformWorldToHClip(posWS);
@@ -375,21 +378,6 @@
                 // ----------------------------
 
 
-
-
-                // ------------ Specular ----------------
-
-                float3 viewDirWS = normalize(IN.viewWS);
-                float3 halfDir = normalize(viewDirWS + normalize(mainLight.direction));
-                float  specular = pow( max(0.0, dot(normalize(IN.normalWS),halfDir)), _Gloss);
-                specular = remap( 0, 1, 0, specular, y4);
-
-                float3 sColor = float3(1,1,1) * specular;
-
-                //return half4( specular, specular, specular, 1); 
-
-
-
                 // -------------- wheat wave --------------
                 float2 wheatUV = GetWheatWaveUV( rootPosWS, _wheatWaveDegree, _wheatWaveGridSize, time, _wheatWaveSpeed );
 
@@ -400,8 +388,8 @@
                 
 
 
-                //float3 lightColor = lerp( IN.color, _HighLightColor, remap(0, 1, 0, 0.5, wheatVal) );
-                float3 lightColor = IN.color;
+                float3 lightColor = lerp( _DownColor, _UpColor, y1 );
+                //float3 lightColor = IN.color;
 
                 if(isUseWheatWave > 0)
                 {
@@ -410,13 +398,13 @@
 
 
 
-                float3 bottomColor = lerp( IN.color, _BottomColor, 0.5 );
+                float3 bottomColor = lerp( IN.color, _DownColor, 0.5 );
 
                 float3 c = lerp( bottomColor, lightColor, y3 );
 
-                c = lerp( _BottomColor, c, remap(0, 1, 0.3, 1, shadow) ); // 此法不好
+                c = lerp( _DownColor, c, remap(0, 1, 0.3, 1, shadow) ); // 此法不好
 
-                //c += sColor;
+          
 
                 //return half4( height, height, height, 1); 
                 //return half4( 0, uv.y * uv.y * uv.y , 0, 1); 

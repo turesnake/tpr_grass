@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FTGrass_2
-  m_Shader: {fileID: 4800000, guid: 405d48a0ac5d8a24bad186ff40603530, type: 3}
+  m_Name: FTGrass_3
+  m_Shader: {fileID: 4800000, guid: c312e0bea1b6b154e859e67b93d23948, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -100,7 +100,7 @@ Material:
     - _GrassHeight: 0.35
     - _GrassWidth: 0.06
     - _GroundGridSize: 11
-    - _GroundRadiusWS: 12.5
+    - _GroundRadiusWS: 20
     - _GroundSize: 13
     - _IsUseWind: -0.56
     - _Metallic: 0
@@ -132,14 +132,14 @@ Material:
     - _BottomColor: {r: 0.10901045, g: 0.16037738, b: 0.02193842, a: 1}
     - _BoundSize: {r: 50, g: 50, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DownColor: {r: 0, g: 1, b: 0.99999976, a: 1}
+    - _DownColor: {r: 0.011764706, g: 0.35686275, b: 0.12156863, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GroundColor: {r: 0.10590956, g: 0.26415092, b: 0.1820699, a: 1}
-    - _HighLightColor: {r: 0.5405961, g: 0.6226415, b: 0.085172676, a: 1}
+    - _HighLightColor: {r: 0.4536846, g: 0.6509804, b: 0.101960756, a: 1}
     - _HightLightColor: {r: 0.58127075, g: 0.6603774, b: 0.17755428, a: 1}
     - _PivotPosWS: {r: 0, g: -0.01, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _UpColor: {r: 0.33807796, g: 0.4433962, b: 0.22797258, a: 1}
+    - _UpColor: {r: 0.1194375, g: 0.41509432, b: 0.228702, a: 1}
     - _WindADirection: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindATiling: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindAWrap: {r: 0.5, g: 0.5, b: 0, a: 1}
