@@ -5,10 +5,10 @@
         
        
         _NoiseColorTex("Noise Color Tex", 2D) = "white" {} // 草地杂色, 四方连续
-
         _GroundHeightTex("Ground Height Tex", 2D) = "white" {}
-
         _WheatTex("麦浪 Tex", 2D) = "white" {}
+
+        _DirNormalTex("dir normal Tex", 2D) = "white" {}
 
 
         _UpColor("Up Color", Color) = (1,1,1,1)
@@ -98,7 +98,7 @@
                 
                 half3 color        : COLOR;
                 float2 uv           : TEXCOORD1;
-                float3 rootPosWS   : TEXCOORD2;
+                float4 rootPosWS   : TEXCOORD2;    // xyz:rootPosWS;  w:posOS.y [0,1]
                 float4 shadowCoord  : TEXCOORD3;
                 float3 viewWS       : TEXCOORD4;
                 float3 normalWS     : TEXCOORD5;
@@ -116,6 +116,7 @@
                 float4 _GroundHeightTex_ST;
                 float4 _NoiseColorTex_ST;
                 float4 _WheatTex_ST;
+                float4 _DirNormalTex_ST;
 
 
                 float3 _UpColor;
@@ -149,6 +150,7 @@
             sampler2D _GroundHeightTex;
             sampler2D _NoiseColorTex;
             sampler2D _WheatTex;
+            sampler2D _DirNormalTex;
 
 
             
@@ -172,10 +174,11 @@
                 Varyings OUT = (Varyings)0;
 
                 // ======================= 各项功能开关, >0 表示开启 =============================
-                float isUse_Wind = -1;           // 是否启用 风
+                float isUse_Wind = 1;           // 是否启用 风
                 float isUse_GroundHeight = -1;   // 是否使用  _GroundHeightTex 里的数据来制作 整块起伏的 草地样貌
                 float isFarGrassFatter = -1;   
 
+                float isUseDir = 1;
 
 
                 // ====================================================
@@ -190,6 +193,13 @@
 
                 float grassNoise = hash12(grassRootPosWS.xz); // [0,1]
                 grassNoise = grassNoise * 2 - 1; // [-1,1]
+
+
+                //-- 基于高度信息的三种 曲线分布
+                float y1 = IN.positionOS.y;
+                float y2 = y1 * y1;
+                float y3 = y1 * y1 * y1;
+
 
 
                 float3 noiseColor = tex2Dlod(_NoiseColorTex, float4(TRANSFORM_TEX(grassRootPosWS.xz,_NoiseColorTex),0,0)).rgb;//sample mip 0 only
@@ -218,8 +228,8 @@
 
 
                 // --- up:
-                float3 upWS = normalize( lerp( cameraUpWS, float3(0,1,0), 0.8 )); // cameraUp 和 纯Up 的插值, 一个尽可能朝向天空的方向;
-
+                //float3 upWS = normalize( lerp( cameraUpWS, float3(0,1,0), 0.8 )); // cameraUp 和 纯Up 的插值, 一个尽可能朝向天空的方向;
+                float3 upWS = float3(0,1,0);
 
                 // --- grassWidth: 
                 float grassWidth = _GrassWidth;
@@ -241,7 +251,42 @@
                 }
 
 
+                if( isUseDir > 0 ) 
+                {
+                    float3 tangent = float3( 1, 0, 0 );
+                    float3 bitangent = float3( 0, 0, 1 );
+                    float3x3 tangentTransform = float3x3(tangent, bitangent, float3(0,1,0));
 
+
+                    float3 normalMapVal = UnpackNormal( tex2Dlod(_DirNormalTex, float4(TRANSFORM_TEX(groundUV,_DirNormalTex),0,0)).rgba);                
+
+                    float3 normalDir = normalize(mul(normalMapVal, tangentTransform)); // 噪波法线1(世界空间法线)
+                    
+                    // !! 基于 normalDir 做点扰动
+
+                    upWS = lerp(upWS, SafeNormalize(normalDir), 0.6);
+
+
+                    
+                    
+                    // 让草变得弯曲:
+                    upWS.x *= y2; 
+                    upWS.z *= y2; 
+                }
+
+
+
+                {
+
+
+
+
+                }
+
+
+
+
+                // ----------------------------------------------
                 // --- localPosWS: (在 World-Space 中, 从 grassRoot 到 本顶点 的距离偏移):
                 // (注: IN.positionOS 是本顶点在 Object-Space 里的 local pos)
                 float3 localPosWS = (IN.positionOS.x * rightWS * grassWidth) + (IN.positionOS.y * upWS * grassHeight);
@@ -269,7 +314,7 @@
 
                     
                     //这里使用了个方法, 以让风只影响 三角形的 上顶点;
-                    wind *= IN.positionOS.y; 
+                    wind *= y2; 
                     float3 windDir = GetWindDir( _wheatWaveDegree-90, _wheatWaveSpeed ); // 风吹方向与 麦浪方向相同
                     float3 windOffset = windDir * wind;
                     posWS.xyz += windOffset;
@@ -297,7 +342,8 @@
                 // ========
                 OUT.positionCS = TransformWorldToHClip(posWS);
                 OUT.color = lightingResult;
-                OUT.rootPosWS = grassRootPosWS;
+                OUT.rootPosWS.xyz = grassRootPosWS;
+                OUT.rootPosWS.w = y1;
                 OUT.uv = IN.uv;
                 OUT.shadowCoord = TransformWorldToShadowCoord(posWS);
                 OUT.viewWS = _WorldSpaceCameraPos - posWS;
@@ -309,15 +355,21 @@
             half4 frag(Varyings IN) : SV_Target
             {
                 // ======================= 各项功能开关, >0 表示开启 =============================
-                float isUseWheatWave = -1;
+                float isUseWheatWave = 1;
 
 
                 // --------------------
                 float time = _Time.y % 1000; // 约束精度;
                 float2 uv = IN.uv; // 手写在叶子顶点内的 uv值;
-                float2 groundUV = frac( IN.rootPosWS.xz / _GroundGridSize );
-                float uvy2 = uv.y * uv.y;
-                float uvy3 = uv.y * uv.y * uv.y;
+                float3 rootPosWS = IN.rootPosWS.xyz; 
+                float2 groundUV = frac( rootPosWS.xz / _GroundGridSize );
+                float y1 = IN.rootPosWS.w;
+                float y2 = y1 * y1;
+                float y3 = y1 * y1 * y1;
+                float y4 = y2 * y2;
+
+
+              
 
 
                 //------------- shadow ---------------
@@ -329,23 +381,21 @@
 
 
 
-
-
                 // ------------ Specular ----------------
 
                 float3 viewDirWS = normalize(IN.viewWS);
                 float3 halfDir = normalize(viewDirWS + normalize(mainLight.direction));
                 float  specular = pow( max(0.0, dot(normalize(IN.normalWS),halfDir)), _Gloss);
-                specular = remap( 0, 1, 0, specular, uvy3);
+                specular = remap( 0, 1, 0, specular, y4);
 
                 float3 sColor = float3(1,1,1) * specular;
 
-                return half4( specular, 0, 0, 1); 
+                //return half4( specular, specular, specular, 1); 
 
 
 
                 // -------------- wheat wave --------------
-                float2 wheatUV = GetWheatWaveUV( IN.rootPosWS, _wheatWaveDegree, _wheatWaveGridSize, time, _wheatWaveSpeed );
+                float2 wheatUV = GetWheatWaveUV( rootPosWS, _wheatWaveDegree, _wheatWaveGridSize, time, _wheatWaveSpeed );
 
 
                 //float height = tex2Dlod(_GroundHeightTex, float4(TRANSFORM_TEX(groundUV,_GroundHeightTex),0,0)).r; //sample mip 0 only
@@ -366,11 +416,11 @@
 
                 float3 bottomColor = lerp( IN.color, _BottomColor, 0.5 );
 
-                float3 c = lerp( bottomColor, lightColor, uvy3 );
+                float3 c = lerp( bottomColor, lightColor, y3 );
 
                 c = lerp( _BottomColor, c, remap(0, 1, 0.3, 1, shadow) ); // 此法不好
 
-                c += sColor;
+                //c += sColor;
 
                 //return half4( height, height, height, 1); 
                 //return half4( 0, uv.y * uv.y * uv.y , 0, 1); 
