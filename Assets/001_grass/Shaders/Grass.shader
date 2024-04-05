@@ -62,7 +62,7 @@
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             //#include "gradientNoise3D.hlsl"
-            #include "wind.hlsl"
+            #include "../Shaders/wind.hlsl"
 
             struct Attributes
             {

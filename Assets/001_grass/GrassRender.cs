@@ -3,17 +3,16 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Jobs;
 using UnityEngine;
 using UnityEngine.Profiling;
 
 using UnityEngine.Rendering;
 
 
-// 建议 transform.localScale 设置为 (50,1,50)
+// 建议 transform.localScale 设置为 (30,1,30)
 
 //[ExecuteAlways]
-public class GrassRendering : MonoBehaviour
+public class GrassRender : MonoBehaviour
 {
 
     //[Range(1, 40000000)]
@@ -103,7 +102,6 @@ public class GrassRendering : MonoBehaviour
         float maxLocalScale = Mathf.Max( transform.localScale.x, transform.localScale.z );
         maxLocalScale = Mathf.Max( maxLocalScale, 1f ); // 强制设置不能太小;
         transform.localScale = new Vector3(maxLocalScale, 1f, maxLocalScale);
-
         groundRadius = maxLocalScale * 0.5f;
 
         minX = transform.position.x - groundRadius;
@@ -442,20 +440,8 @@ public class GrassRendering : MonoBehaviour
     }
 
 
-    // 调用本函数将得到一个 三角形 的草 mesh, 此 mesh 只会被生成一次;
-    // 没有曲面细分, 就是一个 三角形的草;
     Mesh GetGrassMeshCache()
     {
         return MeshCreater.GetGrassMesh_Diamond();
     }
-
-
-    
-
-
-
-
-
-
-
 }

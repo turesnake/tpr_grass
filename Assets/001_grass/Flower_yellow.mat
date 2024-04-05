@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FTGrass_2
-  m_Shader: {fileID: 4800000, guid: 405d48a0ac5d8a24bad186ff40603530, type: 3}
+  m_Name: Flower_yellow
+  m_Shader: {fileID: 4800000, guid: bb8c3bd31b0066f41a14e1c916d4c207, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -36,9 +36,13 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _ColorTex:
+        m_Texture: {fileID: 2800000, guid: 915608ef28190e448ada54453fda0877, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _DirNormalTex:
         m_Texture: {fileID: 2800000, guid: 84e5d3a384df4504b84f51aab31a7e75, type: 3}
-        m_Scale: {x: 3, y: 3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
@@ -49,11 +53,15 @@ Material:
         m_Scale: {x: 0.0055, y: 0.0055}
         m_Offset: {x: 0.5, y: 0.5}
     - _GroundHeightTex:
-        m_Texture: {fileID: 2800000, guid: ecd31214799f54741a998f41ef3eed82, type: 3}
+        m_Texture: {fileID: 2800000, guid: d131f70fa0b973e4a83866e72ff00579, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 2800000, guid: 83bb740432cd0244898037d7c5df99bd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -93,15 +101,17 @@ Material:
     - _DrawDistance: 125
     - _DstBlend: 0
     - _EnvironmentReflections: 1
+    - _FlowerSize: 1.2
     - _Gloss: 4.8
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GrassHeight: 0.35
-    - _GrassWidth: 0.06
+    - _GrassHeight: 0.7
+    - _GrassWidth: 0.05
     - _GroundGridSize: 11
-    - _GroundRadiusWS: 12.5
+    - _GroundRadiusWS: 0.5
     - _GroundSize: 13
+    - _InnSize: 0.08
     - _IsUseWind: -0.56
     - _Metallic: 0
     - _OcclusionStrength: 1
@@ -124,22 +134,29 @@ Material:
     - _WindIntensity: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
-    - _wheatWaveDegree: 149
+    - _wheatWaveDegree: 11
     - _wheatWaveGridSize: 15
-    - _wheatWaveSpeed: -2
+    - _wheatWaveSpeed: 1.5
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _BottomColor: {r: 0.10901045, g: 0.16037738, b: 0.02193842, a: 1}
     - _BoundSize: {r: 50, g: 50, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DownColor: {r: 0, g: 1, b: 0.99999976, a: 1}
+    - _Color_A: {r: 0.9254902, g: 0.8445645, b: 0.33725494, a: 1}
+    - _Color_B: {r: 0.8117648, g: 0.46274513, b: 0, a: 1}
+    - _DownColor: {r: 0.023529412, g: 0.3019608, b: 0.11372549, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Grass: {r: 0.05, g: 1, b: 0, a: 0}
+    - _GrassHeightRange: {r: 0.7, g: 2, b: 0, a: 0}
+    - _GridSizes: {r: 11, g: 15, b: 0, a: 0}
     - _GroundColor: {r: 0.10590956, g: 0.26415092, b: 0.1820699, a: 1}
-    - _HighLightColor: {r: 0.5405961, g: 0.6226415, b: 0.085172676, a: 1}
+    - _HighLightColor: {r: 0.32056236, g: 0.5377358, b: 0.1496529, a: 1}
     - _HightLightColor: {r: 0.58127075, g: 0.6603774, b: 0.17755428, a: 1}
     - _PivotPosWS: {r: 0, g: -0.01, b: 0, a: 0}
+    - _ShadowColor: {r: 0.043137256, g: 0.15294118, b: 0.10588236, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _UpColor: {r: 0.33807796, g: 0.4433962, b: 0.22797258, a: 1}
+    - _UpColor: {r: 0.14351194, g: 0.4056604, b: 0.17989731, a: 1}
+    - _Wind: {r: 1.5, g: 2, b: 0, a: 0}
     - _WindADirection: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindATiling: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindAWrap: {r: 0.5, g: 0.5, b: 0, a: 1}

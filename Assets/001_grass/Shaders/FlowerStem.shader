@@ -1,27 +1,25 @@
 ﻿/* 
-    easy color:
+    绘制花杆
 */
-Shader "FT Scene/Grass3"
+Shader "FT Scene/FlowerStem"
 {
     Properties
     {
-        _GroundHeightTex("叶子高度波动", 2D) = "white" {}
-        _WheatTex("麦浪", 2D) = "white" {}
-        _DirNormalTex("叶子倒伏", 2D) = "white" {}
-
-
+    
+   
+  
         _ShadowColor("Shadow Color", Color) = (1,1,1,1)
         _DownColor("Down Color", Color) = (1,1,1,1)
         _UpColor("Up Color", Color) = (1,1,1,1)
         
 
-        _HighLightColor("hight light Color", Color) = (1,1,1,1)
+     
 
 
        
         [Header(Grass Shape)]
         _Grass("x:叶宽; y:叶高;", Vector) = ( 0.05, 0.7, 0, 0 )
-        _GrassHeightRange("叶高波动区间(百分比); x:min; y:max", Vector) = ( 0.6, 1.3, 0, 0 )
+  
         _GridSizes("网格(正方形)边长: x:地面网格, y:麦浪网格", Vector) = (11, 15, 0, 0)
 
     
@@ -42,7 +40,7 @@ Shader "FT Scene/Grass3"
 
         Pass
         {
-            Name "Grass3" 
+            Name "FlowerStem" 
 
             Cull Back
             ZTest Less
@@ -75,7 +73,7 @@ Shader "FT Scene/Grass3"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
 
             //#include "gradientNoise3D.hlsl"
-            #include "wind.hlsl"
+            #include "../Shaders/wind.hlsl"
             #include "Grass2.hlsl"
 
 
@@ -91,20 +89,18 @@ Shader "FT Scene/Grass3"
                 float2 uv           : TEXCOORD1;
                 float4 rootPosWS   : TEXCOORD2;    // xyz:rootPosWS;  w:posOS.y [0,1]
                 float4 shadowCoord  : TEXCOORD3;
-                float3 viewWS       : TEXCOORD4;
-                float3 normalWS     : TEXCOORD5;
+                float3 normalWS     : TEXCOORD4;
             };
 
             CBUFFER_START(UnityPerMaterial)
                 float3 _PivotPosWS; // 草地 gameobj 的 posWS
                 float2 _BoundSize;  // 草地 gameobj 的 localScale {x,z}
                 //---
-                float4 _GroundHeightTex_ST;
-                float4 _WheatTex_ST;
+               
+          
                 float4 _DirNormalTex_ST;
                 //---
                 float4 _Grass;
-                float4 _GrassHeightRange;
                 float4 _GridSizes;
 
                 
@@ -112,25 +108,25 @@ Shader "FT Scene/Grass3"
                 float3 _ShadowColor;
                 float3 _DownColor;
                 float3 _UpColor;
-                float3 _HighLightColor;
+          
                 //---
                 float _wheatWaveDegree;
                 float4 _Wind;
 
                 float _GroundRadiusWS; // 草地半径; 和 posws 同坐标比例; 超出此半径的草全被剔除;
 
-                // 所有草的 posWS, 按照 cell 的次序排序
-                StructuredBuffer<float3> _AllInstancesTransformBuffer; // 有 11mb 大;
+                
+                StructuredBuffer<float4> _AllInstancesRootPosWSBuffer;
+                StructuredBuffer<float4> _AllInstancesDirWSBuffer;
 
-                // 本帧可见的 每个草叶子 的 idx 值; (在 _AllInstancesTransformBuffer 内的 idx 值)
-                StructuredBuffer<uint> _VisibleInstanceOnlyTransformIDBuffer;
+               
 
             CBUFFER_END
 
             //-----------
-            sampler2D _GroundHeightTex;
-            sampler2D _WheatTex;
-            sampler2D _DirNormalTex;
+         
+
+  
             
     
 
@@ -141,24 +137,20 @@ Shader "FT Scene/Grass3"
                 Varyings OUT = (Varyings)0;
 
                 // ======================= 各项功能开关, >0 表示开启 =============================
-                float isUse_Wind = -1;           // 是否启用 风
-                float isUse_GroundHeight = 1;   // 是否使用  _GroundHeightTex 里的数据来制作 整块起伏的 草地样貌
-                float isFarGrassFatter = 1;    // 是否让远处的叶片变得更宽
-                float isSetGrassDir = 1;
+                float isUse_Wind = 1;           // 是否启用 风
+    
+        
 
 
                 // ====================================================
+                float3 rootPosWS = _AllInstancesRootPosWSBuffer[instanceID].xyz;
+                float  stemLen   = _AllInstancesRootPosWSBuffer[instanceID].w;
+                float3 dirWS        = _AllInstancesDirWSBuffer[instanceID].xyz;
+                float  localScale   = _AllInstancesDirWSBuffer[instanceID].w;
 
-                // 本颗草 的 root posWS; (就是草最下方的那个点)
-                float3 grassRootPosWS = _AllInstancesTransformBuffer[_VisibleInstanceOnlyTransformIDBuffer[instanceID]];
+              
 
-                float groundGridSize = _GridSizes.x;
-                float2 groundUV = frac( grassRootPosWS.xz / groundGridSize );
-
-                float3 viewWS = _WorldSpaceCameraPos - grassRootPosWS;// 草->camera
-                float ViewWSLength = length(viewWS); // 草 到 相机距离
-
-                float grassNoise = hash12(grassRootPosWS.xz); // [0,1]
+                float grassNoise = hash12(rootPosWS.xz); // [0,1]
                 grassNoise = grassNoise * 2 - 1; // [-1,1]
 
 
@@ -180,59 +172,25 @@ Shader "FT Scene/Grass3"
                 float3 rightWS = cameraRightWS;
 
                 // --- up:
-                //float3 upWS = normalize( lerp( cameraUpWS, float3(0,1,0), 0.8 )); // cameraUp 和 纯Up 的插值, 一个尽可能朝向天空的方向;
-                float3 upWS = float3(0,1,0);
+                float3 upWS = dirWS;
 
                 // --- grassWidth: 
-                float grassWidth = _Grass.x;
-                grassWidth = grassWidth * remap( -1,1, 0.3, 1, sin(grassRootPosWS.x*95.4643 + grassRootPosWS.z)); // 让每颗草的宽度在 [0.1,1] 之间随机; (-这部分具体怎么计算无所谓-)
-
-                if( isFarGrassFatter > 0 )
-                {
-                    // 让那些远离 camera 的三角形变得更胖些, 以此来遮挡远处的 小于一个像素的三角形 带来的 闪烁问题;
-                    grassWidth += max(0, ViewWSLength * 0.015); // (-这部分具体怎么计算无所谓-)
-                }
-
+                float grassWidth = _Grass.x;                
                 // --- grassHeight:
-                float grassHeight = _Grass.y;
-
-                if(isUse_GroundHeight > 0)
-                {
-                    float height1 = tex2Dlod(_GroundHeightTex, float4(TRANSFORM_TEX(groundUV,_GroundHeightTex),0,0)).r;//sample mip 0 only
-                    grassHeight *= remap( 0, 1, _GrassHeightRange.x, _GrassHeightRange.y, height1 );
-                }
-
-
-                if( isSetGrassDir > 0 ) 
-                {
-                    float3x3 tangentTransform = float3x3(
-                        float3(1,0,0), // tangent
-                        float3(0,0,1), // bitangent
-                        float3(0,1,0)  // normal
-                    );
-                    float3 normalMapVal = UnpackNormal( tex2Dlod(_DirNormalTex, float4(TRANSFORM_TEX(groundUV,_DirNormalTex),0,0)).rgba);                
-                    float3 normalDirWS = SafeNormalize(mul(normalMapVal, tangentTransform));
-                    
-                    
-
-
-
-                    upWS = lerp(upWS, normalDirWS, 0.6);
-                }
-
+                float grassHeight = stemLen;
 
                 // ----------------------------------------------
                 // --- localPosWS: (在 World-Space 中, 从 grassRoot 到 本顶点 的距离偏移):
                 // (注: IN.positionOS 是本顶点在 Object-Space 里的 local pos)
                 float3 localPosWS = (IN.positionOS.x * rightWS * grassWidth) + (IN.positionOS.y * upWS * grassHeight);
                 // ---  本顶点的真正的 posWS:
-                float3 posWS = grassRootPosWS + localPosWS;
+                float3 posWS = rootPosWS + localPosWS;
 
 
                 // =========== 风 =============
                 if(isUse_Wind > 0.0)
                 {
-                    float2 pp = (grassRootPosWS.xz/_GroundRadiusWS) * 0.5 + 0.5;
+                    float2 pp = (rootPosWS.xz/_GroundRadiusWS) * 0.5 + 0.5;
 
                     float wind = calc_wind( pp, grassNoise ); // [-1,1]
                     wind = remap( -1, 1, -0.08, 0.25, wind ); // 微风, 微微向画面右侧摆动, 允许向左回弹;
@@ -252,11 +210,10 @@ Shader "FT Scene/Grass3"
 
                 // ========
                 OUT.positionCS = TransformWorldToHClip(posWS);
-                OUT.rootPosWS.xyz = grassRootPosWS;
+                OUT.rootPosWS.xyz = rootPosWS;
                 OUT.rootPosWS.w = y1;
                 OUT.uv = IN.uv;
-                OUT.shadowCoord = TransformWorldToShadowCoord(grassRootPosWS);
-                OUT.viewWS = _WorldSpaceCameraPos - posWS;
+                OUT.shadowCoord = TransformWorldToShadowCoord(rootPosWS);
                 OUT.normalWS = float3( 0,0, -1 );
                 return OUT;
             }
@@ -265,7 +222,7 @@ Shader "FT Scene/Grass3"
             half4 frag(Varyings IN) : SV_Target
             {
                 // ======================= 各项功能开关, >0 表示开启 =============================
-                float isUseWheatWave = -1;
+                //float isUseWheatWave = 1;
 
                 // --------------------
                 float time = _Time.y % 1000; // 约束精度;
@@ -280,21 +237,15 @@ Shader "FT Scene/Grass3"
 
                 // ----------------------------
                 float3 upColor = _UpColor;
-                // -------------- wheat wave --------------
-                if(isUseWheatWave > 0)
-                {
-                    float2 wheatUV = GetWheatWaveUV( rootPosWS, _wheatWaveDegree, wheatWaveGridSize, time, _Wind.x );
-                    float wheatVal = tex2Dlod(_WheatTex, float4(TRANSFORM_TEX(wheatUV,_WheatTex),0,0)).r;
-                    upColor = lerp( upColor, _HighLightColor, wheatVal);
-                }
+                
 
-                //------------- shadow ---------------
+                // //------------- shadow ---------------
                 Light mainLight = GetMainLight(IN.shadowCoord);
                 half shadow = mainLight.shadowAttenuation; // light:1; shadow:0
-                //---
+                // //---
                 half3 c = lerp( _DownColor, upColor, y2 ); // 叶子上下分色
                 c = lerp( _ShadowColor, c, shadow ); // 给阴影处上色
-                return half4(c,1);
+                return half4( c,1);
             }
 
             ENDHLSL

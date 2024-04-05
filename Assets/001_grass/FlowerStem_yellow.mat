@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FTGrass_3
-  m_Shader: {fileID: 4800000, guid: c312e0bea1b6b154e859e67b93d23948, type: 3}
+  m_Name: FlowerStem_yellow
+  m_Shader: {fileID: 4800000, guid: a9176d2e93cacd14da53a3c18a7073fd, type: 3}
   m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -38,7 +38,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _DirNormalTex:
         m_Texture: {fileID: 2800000, guid: 84e5d3a384df4504b84f51aab31a7e75, type: 3}
-        m_Scale: {x: 1.3, y: 1.3}
+        m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 0}
@@ -100,7 +100,7 @@ Material:
     - _GrassHeight: 0.7
     - _GrassWidth: 0.05
     - _GroundGridSize: 11
-    - _GroundRadiusWS: 17.5
+    - _GroundRadiusWS: 0.5
     - _GroundSize: 13
     - _IsUseWind: -0.56
     - _Metallic: 0
@@ -132,9 +132,9 @@ Material:
     - _BottomColor: {r: 0.10901045, g: 0.16037738, b: 0.02193842, a: 1}
     - _BoundSize: {r: 50, g: 50, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DownColor: {r: 0.023529412, g: 0.3019608, b: 0.11372549, a: 1}
+    - _DownColor: {r: 0.047463406, g: 0.3019608, b: 0.023529403, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Grass: {r: 0.05, g: 1, b: 0, a: 0}
+    - _Grass: {r: 0.03, g: 1, b: 0, a: 0}
     - _GrassHeightRange: {r: 0.7, g: 2, b: 0, a: 0}
     - _GridSizes: {r: 11, g: 15, b: 0, a: 0}
     - _GroundColor: {r: 0.10590956, g: 0.26415092, b: 0.1820699, a: 1}
@@ -143,8 +143,8 @@ Material:
     - _PivotPosWS: {r: 0, g: -0.01, b: 0, a: 0}
     - _ShadowColor: {r: 0.043137256, g: 0.15294118, b: 0.10588236, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
-    - _UpColor: {r: 0.14351194, g: 0.4056604, b: 0.17989731, a: 1}
-    - _Wind: {r: 1.5, g: 3, b: 0, a: 0}
+    - _UpColor: {r: 0.33879519, g: 0.5283019, b: 0.067283735, a: 1}
+    - _Wind: {r: 1.5, g: 2, b: 0, a: 0}
     - _WindADirection: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindATiling: {r: 0.1, g: 0.1, b: 0, a: 1}
     - _WindAWrap: {r: 0.5, g: 0.5, b: 0, a: 1}
