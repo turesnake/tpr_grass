@@ -72476,16 +72476,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5878510592447584652, guid: 7d421f16718b4634e9e58ef10608dab7,
         type: 3}
-      propertyPath: m_LocalScale.x
-      value: 35
-      objectReference: {fileID: 0}
-    - target: {fileID: 5878510592447584652, guid: 7d421f16718b4634e9e58ef10608dab7,
-        type: 3}
-      propertyPath: m_LocalScale.z
-      value: 35
-      objectReference: {fileID: 0}
-    - target: {fileID: 5878510592447584652, guid: 7d421f16718b4634e9e58ef10608dab7,
-        type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -72541,18 +72531,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8780766456528012894, guid: 7d421f16718b4634e9e58ef10608dab7,
         type: 3}
-      propertyPath: material
-      value: 
-      objectReference: {fileID: 2100000, guid: 2aad3d84540c14f4fa8b593818beb7c2, type: 2}
-    - target: {fileID: 8780766456528012894, guid: 7d421f16718b4634e9e58ef10608dab7,
-        type: 3}
       propertyPath: windParams
       value: 
       objectReference: {fileID: 1954780454}
-    - target: {fileID: 8780766456528012894, guid: 7d421f16718b4634e9e58ef10608dab7,
-        type: 3}
-      propertyPath: instanceCount
-      value: 30000
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7d421f16718b4634e9e58ef10608dab7, type: 3}

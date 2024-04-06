@@ -6,8 +6,8 @@ Shader "FT Scene/Flower"
     Properties
     {
         _ShapeTex("花形状", 2D) = "white" {}
-        _Color_A("Color A", Color) = (1,1,1,1)
-        _Color_B("Color B", Color) = (1,1,1,1)
+        _InnColor("Inn Color", Color) = (1,1,1,1)
+        _OutColor("Out Color", Color) = (1,1,1,1)
 
         _FlowerSize ("花朵的基础尺寸", Float) = 1
         _InnSize("花内芯尺寸", Float) = 0.1
@@ -89,8 +89,8 @@ Shader "FT Scene/Flower"
                 float _FlowerSize;
                 float _InnSize;
                 //---
-                float3 _Color_A;
-                float3 _Color_B;
+                float3 _InnColor;
+                float3 _OutColor;
                 //---
                 float4 _WindParams;
 
@@ -192,9 +192,9 @@ Shader "FT Scene/Flower"
                 clip( mask - 0.5 );
 
                 float dis = length(midUV);
-                float3 baseColor = _Color_A;
+                float3 baseColor = _InnColor;
 
-                baseColor = lerp( _Color_A, _Color_B, smoothstep( _InnSize, _InnSize+0.05, dis ) );
+                baseColor = lerp( _InnColor, _OutColor, smoothstep( _InnSize, _InnSize+0.05, dis ) );
 
                 return half4( baseColor, 1 );
                 return half4( 0, 1, 0, 1);

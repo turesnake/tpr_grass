@@ -58,3 +58,4 @@ MonoBehaviour:
   material: {fileID: 2100000, guid: 2aad3d84540c14f4fa8b593818beb7c2, type: 2}
   cullingComputeShader: {fileID: 7200000, guid: 18625001b0a90a8428e63978443be598,
     type: 3}
+  windParams: {fileID: 0}
