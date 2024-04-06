@@ -1,31 +1,16 @@
 ﻿/* 
-    绘制花杆
+    绘制 花杆
 */
 Shader "FT Scene/FlowerStem"
 {
     Properties
     {
-    
-   
-  
-        _ShadowColor("Shadow Color", Color) = (1,1,1,1)
-        _DownColor("Down Color", Color) = (1,1,1,1)
-        _UpColor("Up Color", Color) = (1,1,1,1)
+        _ShadowColor("Shadow Color", Color) = (1,1,1,1) // 花杆 阴影颜色, 最好和地面的阴影颜色相近
+        _DownColor("Down Color", Color) = (1,1,1,1)     // 花杆 下段颜色, 最好和地面颜色相近
+        _UpColor("Up Color", Color) = (1,1,1,1)         // 花杆 上段颜色
         
-
-     
-
-
-       
         [Header(Grass Shape)]
         _Grass("x:叶宽; y:叶高;", Vector) = ( 0.05, 0.7, 0, 0 )
-  
-        _GridSizes("网格(正方形)边长: x:地面网格, y:麦浪网格", Vector) = (11, 15, 0, 0)
-
-    
-        _wheatWaveDegree("麦浪方向夹角(0,360)", Range(0,360)) = 0
-        _Wind("x:麦浪运动速度(可正负); y:风力大小;", Vector) = ( 1.5, 2, 0, 0 )
-
         //---
         [HideInInspector]_PivotPosWS("_PivotPosWS", Vector) = (0,0,0,0)
         [HideInInspector]_BoundSize("_BoundSize", Vector) = (1,1,0)
@@ -74,7 +59,7 @@ Shader "FT Scene/FlowerStem"
 
             //#include "gradientNoise3D.hlsl"
             #include "../Shaders/wind.hlsl"
-            #include "Grass2.hlsl"
+            #include "Grass.hlsl"
 
 
             struct Attributes
@@ -96,39 +81,25 @@ Shader "FT Scene/FlowerStem"
                 float3 _PivotPosWS; // 草地 gameobj 的 posWS
                 float2 _BoundSize;  // 草地 gameobj 的 localScale {x,z}
                 //---
-               
-          
                 float4 _DirNormalTex_ST;
                 //---
                 float4 _Grass;
-                float4 _GridSizes;
-
-                
                 //---
                 float3 _ShadowColor;
                 float3 _DownColor;
                 float3 _UpColor;
           
                 //---
-                float _wheatWaveDegree;
-                float4 _Wind;
+                float4 _WindParams;
 
                 float _GroundRadiusWS; // 草地半径; 和 posws 同坐标比例; 超出此半径的草全被剔除;
-
                 
                 StructuredBuffer<float4> _AllInstancesRootPosWSBuffer;
                 StructuredBuffer<float4> _AllInstancesDirWSBuffer;
-
-               
-
             CBUFFER_END
 
             //-----------
-         
-
-  
-            
-    
+        
 
             // 一个草叶子( 4个三角形构成的菱形) 上的一个顶点:
             // 一个草叶子的每个顶点在调用本函数时, 它们的 instanceID 都是相同的
@@ -138,16 +109,15 @@ Shader "FT Scene/FlowerStem"
 
                 // ======================= 各项功能开关, >0 表示开启 =============================
                 float isUse_Wind = 1;           // 是否启用 风
-    
-        
-
 
                 // ====================================================
                 float3 rootPosWS = _AllInstancesRootPosWSBuffer[instanceID].xyz;
                 float  stemLen   = _AllInstancesRootPosWSBuffer[instanceID].w;
                 float3 dirWS        = _AllInstancesDirWSBuffer[instanceID].xyz;
                 float  localScale   = _AllInstancesDirWSBuffer[instanceID].w;
-
+                float wheatWaveDegree = _WindParams.x;
+                float wheatWaveSpeed = _WindParams.y;
+                float windPower = _WindParams.z;
               
 
                 float grassNoise = hash12(rootPosWS.xz); // [0,1]
@@ -199,11 +169,11 @@ Shader "FT Scene/FlowerStem"
                     windWeight = saturate( pow(abs(windWeight), 2) );
                     windWeight = remap( 0, 1, 0.1, 1, windWeight );
 
-                    wind = wind * windWeight * global_wind_weight() * _Wind.y;
+                    wind = wind * windWeight * global_wind_weight() * windPower;
                     
                     //这里使用了个方法, 以让风只影响 三角形的 上顶点;
                     wind *= y3; // 让草变得柔软 
-                    float3 windDir = GetWindDir( _wheatWaveDegree-90, _Wind.x ); // 风吹方向与 麦浪方向相同
+                    float3 windDir = GetWindDir( wheatWaveDegree-90, wheatWaveSpeed ); // 风吹方向与 麦浪方向相同
                     float3 windOffset = windDir * wind;
                     posWS.xyz += windOffset;
                 }
@@ -221,15 +191,10 @@ Shader "FT Scene/FlowerStem"
 
             half4 frag(Varyings IN) : SV_Target
             {
-                // ======================= 各项功能开关, >0 表示开启 =============================
-                //float isUseWheatWave = 1;
-
                 // --------------------
                 float time = _Time.y % 1000; // 约束精度;
                 float2 uv = IN.uv; // 手写在叶子顶点内的 uv值;
                 float3 rootPosWS = IN.rootPosWS.xyz; 
-                float groundGridSize = _GridSizes.x;
-                float wheatWaveGridSize = _GridSizes.y;
                 float y1 = IN.rootPosWS.w;
                 float y2 = y1 * y1;
                 float y3 = y1 * y1 * y1;
@@ -237,7 +202,6 @@ Shader "FT Scene/FlowerStem"
 
                 // ----------------------------
                 float3 upColor = _UpColor;
-                
 
                 // //------------- shadow ---------------
                 Light mainLight = GetMainLight(IN.shadowCoord);

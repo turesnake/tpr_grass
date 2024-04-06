@@ -16,9 +16,11 @@ using UnityEngine.Rendering;
 public class FlowerRender : MonoBehaviour
 {
     public Transform flowersFieldRootTF; // 花场root, 在此节点内收集所有 FlowerFlag
+    public WindParams windParams;
     public Material stemMaterial; // 花杆
     public Material flowerMaterial; // 花朵
 
+    [Header("统一缩放 花杆 的高度: 1表示不缩放")]
     public float stemLenScale = 1f;
 
 
@@ -44,8 +46,8 @@ public class FlowerRender : MonoBehaviour
 
     static int _AllInstancesRootPosWSBuffer = Shader.PropertyToID("_AllInstancesRootPosWSBuffer"); // 塞入 floweRootPosWSList
     static int _AllInstancesDirWSBuffer = Shader.PropertyToID("_AllInstancesDirWSBuffer"); // 塞入 flowerDirWSList
-
     static int _GroundRadiusWS = Shader.PropertyToID("_GroundRadiusWS");
+    static int _WindParams = Shader.PropertyToID("_WindParams");
 
 
     //=====================================================
@@ -181,6 +183,7 @@ public class FlowerRender : MonoBehaviour
     {
         Debug.Log("---- Start() -----");
         Debug.Assert( stemLenScale > 0.01f );
+        Debug.Assert( windParams );
         Debug.Assert( stemMaterial && flowerMaterial );
         if( SystemInfo.supportsComputeShaders == false )
         {
@@ -199,8 +202,13 @@ public class FlowerRender : MonoBehaviour
         }
 
         PrepareBuffers();
-
         Camera cam =Camera.main;
+
+
+        // 为方便用户调参, windParams 每帧都传进shader:
+        stemMaterial.SetVector(_WindParams, windParams.GetWindParams() );
+        flowerMaterial.SetVector(_WindParams, windParams.GetWindParams() );
+        
          
         // 一整个草地 xz正方形 的 包围盒;  
         // 若 camera frustum 和这个 bound 不相交, 那么下面的 DrawMeshInstancedIndirect() 甚至不会执行渲染;

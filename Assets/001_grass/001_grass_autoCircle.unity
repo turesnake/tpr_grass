@@ -3482,6 +3482,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flowersFieldRootTF: {fileID: 76787503}
+  windParams: {fileID: 1954780454}
   stemMaterial: {fileID: 2100000, guid: 9d950eacbba16594d8cdfd7297dad8b7, type: 2}
   flowerMaterial: {fileID: 2100000, guid: 6853e5446a354b144acfd6bf2dae9f31, type: 2}
   stemLenScale: 1
@@ -3505,7 +3506,7 @@ Transform:
   - {fileID: 85617735}
   - {fileID: 879928387}
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &81201895
 GameObject:
@@ -35363,7 +35364,7 @@ GameObject:
   - component: {fileID: 1052863579}
   - component: {fileID: 1052863578}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: CenterCylinder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35526,6 +35527,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flowersFieldRootTF: {fileID: 1055228387}
+  windParams: {fileID: 1954780454}
   stemMaterial: {fileID: 2100000, guid: 81d57e5c9cf20d944913f2a4be38f03a, type: 2}
   flowerMaterial: {fileID: 2100000, guid: 09a29255288966e458d583bb4004538f, type: 2}
   stemLenScale: 0.9
@@ -35560,7 +35562,7 @@ Transform:
   - {fileID: 1137158481}
   - {fileID: 406994306}
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1057408931
 GameObject:
@@ -42123,7 +42125,7 @@ Transform:
   - {fileID: 812401122}
   - {fileID: 1096613608}
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1250348351
 MonoBehaviour:
@@ -42138,6 +42140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flowersFieldRootTF: {fileID: 1250348350}
+  windParams: {fileID: 1954780454}
   stemMaterial: {fileID: 2100000, guid: ca99caf17d786774e8cb222a64256c35, type: 2}
   flowerMaterial: {fileID: 2100000, guid: 74a80a7edf3039e4d89226dfad71f45b, type: 2}
   stemLenScale: 1
@@ -65765,6 +65768,53 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1953515581}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1954780453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1954780455}
+  - component: {fileID: 1954780454}
+  m_Layer: 0
+  m_Name: WindParams
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1954780454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954780453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c7586ea8f6c07d43886e6c4cc00ff06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wheatWaveDegree: 0
+  wheatWaveSpeed: 1
+  windPower: 2
+--- !u!4 &1954780455
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1954780453}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1956014000
 GameObject:
   m_ObjectHideFlags: 0
@@ -72422,7 +72472,7 @@ PrefabInstance:
     - target: {fileID: 5878510592447584652, guid: 7d421f16718b4634e9e58ef10608dab7,
         type: 3}
       propertyPath: m_RootOrder
-      value: 5
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5878510592447584652, guid: 7d421f16718b4634e9e58ef10608dab7,
         type: 3}
@@ -72494,6 +72544,11 @@ PrefabInstance:
       propertyPath: material
       value: 
       objectReference: {fileID: 2100000, guid: 2aad3d84540c14f4fa8b593818beb7c2, type: 2}
+    - target: {fileID: 8780766456528012894, guid: 7d421f16718b4634e9e58ef10608dab7,
+        type: 3}
+      propertyPath: windParams
+      value: 
+      objectReference: {fileID: 1954780454}
     - target: {fileID: 8780766456528012894, guid: 7d421f16718b4634e9e58ef10608dab7,
         type: 3}
       propertyPath: instanceCount

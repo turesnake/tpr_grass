@@ -9,10 +9,14 @@ using UnityEngine.Profiling;
 using UnityEngine.Rendering;
 
 
-// 建议 transform.localScale 设置为 (30,1,30)
+/*
+    自动在本 transform 为中心的 y=0 的圆形区域内生成草地;
 
-//[ExecuteAlways]
-public class GrassRender : MonoBehaviour
+*/
+
+
+// 建议 transform.localScale 设置为 (30,1,30)
+public class GrassRender_AutoCircle : MonoBehaviour
 {
 
     //[Range(1, 40000000)]
@@ -25,6 +29,7 @@ public class GrassRender : MonoBehaviour
     public Material material; // 每颗草的材质球, 既实现草的运动, 也实现草的渲染;
 
     public ComputeShader cullingComputeShader; // 目标 compute shader
+    public WindParams windParams;
 
 
     //=====================================================
@@ -68,7 +73,6 @@ public class GrassRender : MonoBehaviour
     Vector3 numthreads = new Vector3( 64f, 1f, 1f ); // 这个配置一定要和 compute shader kernel 中的 numthreads 配置一样;
 
     float groundRadius = 0f; // 草地半径;
-    bool isSupportComputeShader = true;
 
 
     static int _PivotPosWS = Shader.PropertyToID("_PivotPosWS");
@@ -80,6 +84,7 @@ public class GrassRender : MonoBehaviour
     static int _MaxDrawDistance = Shader.PropertyToID("_MaxDrawDistance");
     static int _StartOffset = Shader.PropertyToID("_StartOffset");
     static int _GroundRadiusWS = Shader.PropertyToID("_GroundRadiusWS");
+    static int _WindParams = Shader.PropertyToID("_WindParams");
 
 
     //=====================================================
@@ -240,23 +245,13 @@ public class GrassRender : MonoBehaviour
         cullingComputeShader.SetBuffer(0, _VisibleInstancesOnlyPosWSIDBuffer, visibleInstancesOnlyPosWSIDBuffer);
     }
 
-    void Awake()
-    {
-    }
-
-
-    void OnEnable()
-    {
-    }
-
-
 
     void Start()
     {
         Debug.Log("---- Start() -----");
+        Debug.Assert( windParams );
 
-        isSupportComputeShader = SystemInfo.supportsComputeShaders;
-        if( isSupportComputeShader == false )
+        if( SystemInfo.supportsComputeShaders == false )
         {
             return;
         }
@@ -268,12 +263,14 @@ public class GrassRender : MonoBehaviour
 
     void LateUpdate()
     {
-        if( isSupportComputeShader == false )
+        if( SystemInfo.supportsComputeShaders == false )
         {
             return;
         }
-
         PrepareBuffers();
+
+        // 为方便用户调参, windParams 每帧都传进shader:
+        material.SetVector(_WindParams, windParams.GetWindParams() );
 
         //=====================================================================================================
         // rough quick big cell frustum culling in CPU first -- 粗略快速的 cpu 端 cell级 frustum 剔除;

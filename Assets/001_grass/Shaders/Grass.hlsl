@@ -1,5 +1,5 @@
-#ifndef GRASS2
-#define GRASS2
+#ifndef GRASS
+#define GRASS
 
 
 #include "utils.hlsl"

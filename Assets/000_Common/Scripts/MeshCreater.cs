@@ -23,6 +23,9 @@ public class MeshCreater
 
 
     // 三角形叶片:
+    //    2
+    //   / \
+    //  0 -- 1
     public static Mesh GetGrassMesh_Triangle()
     {
         if (!cachedGrassMesh_Triangle) // 新建
@@ -45,7 +48,7 @@ public class MeshCreater
     }
 
     
-    // 
+    // 矩形:
     //  2 -- 3
     //  |  / |
     //  0 -- 1
@@ -71,6 +74,14 @@ public class MeshCreater
     }
 
 
+    // 矩形2:
+    // 和 矩形1 不同, 本形状平行于 xz平面;
+    // 且中间点2 会向 -y 方向凹陷, 模拟花朵形状;
+    //  3 ----- 4
+    //  | \   / |
+    //  |   2   |
+    //  | /   \ |
+    //  0 ----- 1
     public static Mesh GetGrassMesh_Rect2()
     {
         if (!cachedGrassMesh_Rect2) // 新建
@@ -114,7 +125,8 @@ public class MeshCreater
 
 
 
-    // 菱形叶片, 中间有个长方体; 一共 4 个三角形
+    // 菱形: 
+    // 中间有个长方体; 一共 4 个三角形;
     //         5
     //      /     \
     //     3  ---  4
@@ -166,7 +178,13 @@ public class MeshCreater
 
 
 
-
+    // 6个三角形组成的 六边形:
+    // 本形状平行于 xz平面, 且中间点3 会向 -y 方向凹陷, 模拟花朵形状;
+    //   5 -- 6
+    //  / \  /  \
+    // 2 -- 3 -- 4 
+    //  \  / \  /
+    //   0 -- 1
     public static Mesh GetGrassMesh_Hexagon()
     {
         if (!cachedGrassMesh_Hexagon) // 新建
